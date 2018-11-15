@@ -30,3 +30,13 @@ print("Top Authors of All TIme")
 for row in authors:
     print " ", row[0], " - ", row[1], " Views"
 db.close()
+
+#Find days with more than 1% load errors
+db = psycopg2.connect(DBNAME)
+c = db.cursor()
+c.execute("select t.date, (((e.error*1.0)/(t.views*1.0))*100.0)as percentfrom (select date(time) as date, count(*) as views from log group by date) as t, (select date(time) as date, count(status) as error from log where status = '404 NOT FOUND' group by date) as e where t.date = e.date having percent > 1.0;")
+errors = c.fetchall()
+print("Dates with Errors Greater Than 1%")
+for row in errors:
+    print " ", row[0], " - ", row[1], "% errors"
+db.close()
