@@ -18,6 +18,27 @@ class webServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             # Objective 3 Step 2 - Create /restarants/new page
+            if self.path.endswith("/delete"):
+                restaurantIDPath = self.path.split("/")[2]
+                restaurant = session.query(Restaurant).filter_by(id=restaurantIDPath).one()
+                #if restaurant:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                output = ""
+                output = "<html><body>"
+                output += "<h1>"
+                output += restaurant.name
+                output += "</h1>"
+                output += "<form method = 'POST' enctype='multipart/form-data' action = '/restaurants/%s/delete' >" % restaurant.id
+                output += "<input type='submit' value = 'Delete'>"
+                output += "</form>"
+                output +="</body></html>"
+                self.wfile.write(output)
+
+                    
+               
+            
             if self.path.endswith("/restaurants/new"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
@@ -30,7 +51,7 @@ class webServerHandler(BaseHTTPRequestHandler):
                 output += "<input type='submit' value='Create'>"
                 output += "</form></html></body>"
                 self.wfile.write(output)
-                return
+                
             if self.path.endswith("/edit"):
                 restaurantIDPath = self.path.split("/")[2]
                 myRestaurantQuery = session.query(Restaurant).filter_by(
@@ -68,7 +89,7 @@ class webServerHandler(BaseHTTPRequestHandler):
                     # Objective 4 -- Replace Edit href
                     output += "<a href ='/restaurants/%s/edit' >Edit </a> " % restaurant.id
                     output += "</br>"
-                    output += "<a href =' #'> Delete </a>"
+                    output += "<a href ='/restaurants/%s/delete'> Delete </a>" % restaurant.id
                     output += "</br></br></br>"
 
                 output += "</body></html>"
@@ -80,6 +101,24 @@ class webServerHandler(BaseHTTPRequestHandler):
     # Objective 3 Step 3- Make POST method
     def do_POST(self):
         try:
+            if self.path.endswith("/delete"):
+                ctype, pdict = cgi.parse_header(
+                    self.headers.getheader('content-type'))
+                if ctype == 'multipart/form-data':
+                    fields = cgi.parse_multipart(self.rfile, pdict)
+                    messagecontent = fields.get('deleteRestaurant')
+                    restaurantIDPath = self.path.split("/")[2]
+                    
+                    restaurant = session.query(Restaurant).filter_by(id=restaurantIDPath).one()
+                    if restaurant != []:
+                        session.delete(restaurant)
+                        session.commit()
+                        self.send_response(301)
+                        self.send_header('Content-type', 'text/html')
+                        self.send_header('Location', '/restaurants')
+                        self.end_headers()
+                
+                
             if self.path.endswith("/edit"):
                 ctype, pdict = cgi.parse_header(
                     self.headers.getheader('content-type'))
