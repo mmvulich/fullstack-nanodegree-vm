@@ -4,3 +4,4 @@ __pycache__
 newsdata.sql
 lotsofmenus.py
 *.zip
+*.json
