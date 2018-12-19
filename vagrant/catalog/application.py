@@ -189,33 +189,37 @@ def gdisconnect():
         return response   
 
 #Directs to specific category page
-@app.route('/catalogs/<int:category_id>/items/')
-def catalogCategory(category_id):
-    category = session.query(Category).filter_by(id = category_id).one()
+@app.route('/catalogs/<string:category_name>/items/')
+def catalogCategory(category_name):
+    category = session.query(Category).filter_by(name = category_name).one()
     items = session.query(CategoryItem).filter_by(category_id = category.id)
     return render_template('items.html', category = category, items = items)
 
 #Directs to specific item description page
-@app.route('/catalogs/<int:category_id>/items/<int:item_id>/')
-def catalogItem(category_id, item_id):
-    item = session.query(CategoryItem).filter_by(id = item_id).one()
-    return render_template('item_description.html', item = item)
+@app.route('/catalogs/<string:category_name>/items/<string:item_name>/')
+def catalogItem(category_name, item_name):
+    category = session.query(Category).filter_by(name = category_name).one()
+    item = session.query(CategoryItem).filter_by(name = item_name, category_id = category.id).first()
+    if item != None:
+        return render_template('item_description.html', item = item)
+    else:
+        return "Item Does not Exist!"
 
 #Directs to add a new item page
-#Directs to add a new item page
-@app.route('/catalogs/<int:category_id>/items/new/', methods = ['GET', 'POST'])
-def newItem(category_id):
-    category = session.query(Category).filter_by(id = category_id).one()
-    items = session.query(CategoryItem).filter_by(category_id = category.id)
+@app.route('/catalogs/new/', methods = ['GET', 'POST'])
+def newItem():
+    categories = session.query(Category).all()
+    items = session.query(CategoryItem).all()
     if request.method == 'POST':
+        category = session.query(Category).filter_by(name = request.form['category']).one()
         newItem = CategoryItem(name = request.form['name'],
                               description= request.form['description'],
-                              category_id = category_id)
+                              category_id = category.id)
         session.add(newItem)
         session.commit()
         return redirect(url_for('catalogs'))
     else:
-        return render_template('newCategoryItem.html', category_id = category_id, items = items, category = category)
+        return render_template('newCategoryItem.html', categories = categories, items = items)
 
 #Directs to edit an item page
 @app.route('/catalogs/<int:category_id>/items/<int:item_id>/edit/', methods = ['GET', 'POST'])
