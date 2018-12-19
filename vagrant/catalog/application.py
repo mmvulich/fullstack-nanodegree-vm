@@ -222,13 +222,35 @@ def newItem():
         return render_template('newCategoryItem.html', categories = categories, items = items)
 
 #Directs to edit an item page
-@app.route('/catalogs/<int:category_id>/items/<int:item_id>/edit/', methods = ['GET', 'POST'])
-def editItem(category_id, item_id):
-    return "This is the edit item page"
+@app.route('/catalogs/<int:item_id>/edit/', methods = ['GET', 'POST'])
+def editItem(item_id):
+    editedItem = session.query(CategoryItem).filter_by(id = item_id).first()
+    category = session.query(Category).filter_by(id = editedItem.category_id).one()
+    categories = session.query(Category).all()
+    if request.method == 'POST':
+        if request.form['category']:
+            newCategory = session.query(Category).filter_by(name = request.form['category']).one()
+            editedItem.category_id = newCategory.id
+        elif request.form['name']:
+            editedItem.name = request.form['name']
+        elif request.form['description']:
+            editedItem.description = request.form['description']
+        session.add(editedItem)
+        session.commit()
+        return redirect(url_for('catalogCategory', category_name = newCategory.name))
+    else:
+        return render_template('editCategoryItem.html', item = editedItem, category = category, item_id = item_id, categories = categories)
 
-@app.route('/catalogs/<int:category_id>/items/<int:item_id>/delete/', methods = ['GET', 'POST'])
-def deleteItem(category_id, item_id):
-    return "This is the delete item page"
+@app.route('/catalogs/<int:item_id>/delete/', methods = ['GET', 'POST'])
+def deleteItem(item_id):
+    deletedItem = session.query(CategoryItem).filter_by(id = item_id).first()
+    category = session.query(Category).filter_by(id = deletedItem.category_id).one()
+    if request.method == 'POST':
+        session.delete(deletedItem)
+        session.commit()
+        return redirect(url_for('catalogCategory', category_name = category.name))
+    else:
+        return render_template('deleteCategoryItem.html', item_id = item_id, item = deletedItem, category = category)
 
 
 
