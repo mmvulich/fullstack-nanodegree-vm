@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 app= Flask(__name__)
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from catalog_database_setup import Base, Category, CategoryItem
+from catalog_database_setup import Base, Category, CategoryItem, User
 
 from flask import session as login_session
 import random
@@ -14,16 +14,57 @@ import httplib2
 import json
 from flask import make_response
 import requests
+from flask_httpauth import HTTPBasicAuth
+
+auth = HTTPBasicAuth()
 
 CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = "Catalog-Project"
 
-engine = create_engine('sqlite:///catalog.db')
+engine = create_engine('sqlite:///catalog.db?check_same_thread=False')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+
+#Add @auth.verify_password here
+'''@auth.verify_password
+def verify_password(username,password):
+    user = session.query(User).filter_by(username = username).first()
+    if not user or not user.verify_password(password):
+        return False
+    g.user = user
+    return True
+
+@app.route('/users', methods = ['POST'])
+def new_user():
+    if request.method == 'POST':
+        username = request.json.get('username')
+        password = request.json.get('password')
+        if username is None or password is None:
+            abort(400)
+        if session.query(User).filter_by(username = username).first() is not None:
+            print "existing user"
+            user = session.query(User).filter_by(username=username).first()
+            return jsonify({'message': 'user already exists'}), 200
+        user = User(username=username)
+        session.add(user)
+        session.commit()
+        return jsonify({'username': user.username}), 201
+
+@app.route('/user/<int:id>')
+def get_user(id):
+    user = session.query(User).filter_by(id=id).one()
+    if not user:
+        abort(400)
+    return jsonify({'username', : user.username})
+
+@app.route('/resource')
+@auth.login_required
+def get_resource():
+    return jsonify({'data': 'Hello, %s' % g.user.username})'''
+        
 
 #Directs to main catalog page
 @app.route('/')
@@ -135,6 +176,7 @@ def gconnect():
 # User Helper Functions
 
 
+
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
@@ -144,9 +186,11 @@ def createUser(login_session):
     return user.id
 
 
+
 def getUserInfo(user_id):
     user = session.query(User).filter_by(id=user_id).one()
     return user
+
 
 
 def getUserID(email):
@@ -157,6 +201,7 @@ def getUserID(email):
         return None
 
 # DISCONNECT - Revoke a current user's token and reset their login_session
+
 @app.route('/gdisconnect')
 def gdisconnect():
         # Only disconnect a connected user.
@@ -189,6 +234,7 @@ def gdisconnect():
         return response   
 
 #Directs to specific category page
+
 @app.route('/catalogs/<string:category_name>/items/')
 def catalogCategory(category_name):
     category = session.query(Category).filter_by(name = category_name).one()
@@ -208,13 +254,16 @@ def catalogItem(category_name, item_name):
 #Directs to add a new item page
 @app.route('/catalogs/new/', methods = ['GET', 'POST'])
 def newItem():
+    if 'username' not in login_session:
+        return redirect('/login/')
     categories = session.query(Category).all()
     items = session.query(CategoryItem).all()
     if request.method == 'POST':
         category = session.query(Category).filter_by(name = request.form['category']).one()
         newItem = CategoryItem(name = request.form['name'],
                               description= request.form['description'],
-                              category_id = category.id)
+                              category_id = category.id,
+                              user_id = login_session['user_id'])
         session.add(newItem)
         session.commit()
         return redirect(url_for('catalogs'))
@@ -224,17 +273,18 @@ def newItem():
 #Directs to edit an item page
 @app.route('/catalogs/<int:item_id>/edit/', methods = ['GET', 'POST'])
 def editItem(item_id):
+    if 'username' not in login_session:
+        return redirect('/login/')
     editedItem = session.query(CategoryItem).filter_by(id = item_id).first()
     category = session.query(Category).filter_by(id = editedItem.category_id).one()
     categories = session.query(Category).all()
+    if login_session['user_id'] != editedItem.user_id:
+        return "<script>function myFunction() {alert('You are not authorized to edit this item. Please create your own item at http://localhost:8000/catalogs/new in order to edit');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
-        if request.form['category']:
-            newCategory = session.query(Category).filter_by(name = request.form['category']).one()
-            editedItem.category_id = newCategory.id
-        elif request.form['name']:
-            editedItem.name = request.form['name']
-        elif request.form['description']:
-            editedItem.description = request.form['description']
+        newCategory = session.query(Category).filter_by(name = request.form['category']).one()
+        editedItem.category_id = newCategory.id
+        editedItem.name = request.form['name']
+        editedItem.description = request.form['description']
         session.add(editedItem)
         session.commit()
         return redirect(url_for('catalogCategory', category_name = newCategory.name))
@@ -243,8 +293,12 @@ def editItem(item_id):
 
 @app.route('/catalogs/<int:item_id>/delete/', methods = ['GET', 'POST'])
 def deleteItem(item_id):
+    if 'username' not in login_session:
+        return redirect('/login/')
     deletedItem = session.query(CategoryItem).filter_by(id = item_id).first()
     category = session.query(Category).filter_by(id = deletedItem.category_id).one()
+    if login_session['user_id'] != deletedItem.user_id:
+        return "<script>function myFunction() {alert('You are not authorized to delete this item. Please create your own item at http://localhost:8000/catalogs/new/ in order to delete it.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         session.delete(deletedItem)
         session.commit()

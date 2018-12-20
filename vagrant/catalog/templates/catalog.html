@@ -6,7 +6,7 @@
         
         {% endfor %}
         <h2>New Items</h2>
-        {% for i in items %}
+        {% for index, i in zip(range(5), items) %}
             <p>{{i.name}}, {{i.id}}</p>
         
         {% endfor %}
