@@ -1,17 +1,12 @@
 <html>
     <body>
-        <a href="{{url_for('gdisconnect')}}">Click Here to Log out </a>
+        <a href="{{url_for('showLogin')}}">Click Here to Log in </a>
     <h1> Categories </h1>
         {% for i in categories %}
             <p>{{i.name}}</p>
         
         {% endfor %}
         <h2>Latest Items</h2>
-        <a href="{{url_for('newItem')}}">
-				<button class="btn btn-default" id="new-item">
-					<span class="glyphicon glyphicon-cutlery" aria-hidden="true"></span>Add Item
-				</button>
-			</a>
         {% for i in items %}
             {% for x in categories %}
                 {% if i.category_id == x.id: %}

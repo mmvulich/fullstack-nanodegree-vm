@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 app= Flask(__name__)
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from catalog_database_setup import Base, Category, CategoryItem, User
 
@@ -27,52 +27,16 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-
-#Add @auth.verify_password here
-'''@auth.verify_password
-def verify_password(username,password):
-    user = session.query(User).filter_by(username = username).first()
-    if not user or not user.verify_password(password):
-        return False
-    g.user = user
-    return True
-
-@app.route('/users', methods = ['POST'])
-def new_user():
-    if request.method == 'POST':
-        username = request.json.get('username')
-        password = request.json.get('password')
-        if username is None or password is None:
-            abort(400)
-        if session.query(User).filter_by(username = username).first() is not None:
-            print "existing user"
-            user = session.query(User).filter_by(username=username).first()
-            return jsonify({'message': 'user already exists'}), 200
-        user = User(username=username)
-        session.add(user)
-        session.commit()
-        return jsonify({'username': user.username}), 201
-
-@app.route('/user/<int:id>')
-def get_user(id):
-    user = session.query(User).filter_by(id=id).one()
-    if not user:
-        abort(400)
-    return jsonify({'username', : user.username})
-
-@app.route('/resource')
-@auth.login_required
-def get_resource():
-    return jsonify({'data': 'Hello, %s' % g.user.username})'''
-        
-
 #Directs to main catalog page
 @app.route('/')
 @app.route('/catalogs/')
 def catalogs():
     categories = session.query(Category)
-    items = session.query(CategoryItem)
-    return render_template('catalog.html', categories = categories, items = items)
+    items = session.query(CategoryItem).order_by(desc(CategoryItem.id)).limit(10)
+    if 'username' not in login_session:
+        return render_template('publicCatalog.html', categories = categories, items = items)
+    else:
+        return render_template('catalog.html', categories = categories, items = items)
 
 #Directs to login page using OAuth2.0
 @app.route('/login/')
@@ -206,14 +170,17 @@ def getUserID(email):
 def gdisconnect():
         # Only disconnect a connected user.
     access_token = login_session.get('access_token')
+    print access_token
     if access_token is None:
         response = make_response(
             json.dumps('Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    print url
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
+    print result['status']
 
     if result['status'] == '200':
         # Reset the user's sesson.
@@ -235,23 +202,34 @@ def gdisconnect():
 
 #Directs to specific category page
 
+
+
 @app.route('/catalogs/<string:category_name>/items/')
 def catalogCategory(category_name):
     category = session.query(Category).filter_by(name = category_name).one()
     items = session.query(CategoryItem).filter_by(category_id = category.id)
-    return render_template('items.html', category = category, items = items)
+    num_items = items.count()
+    if num_items == 0 or num_items > 1:
+        item_string = 'items'
+    else:
+        item_string = 'item'
+    return render_template('items.html', category = category, items = items, num_items = num_items, item_string = item_string)
 
 #Directs to specific item description page
+
 @app.route('/catalogs/<string:category_name>/items/<string:item_name>/')
 def catalogItem(category_name, item_name):
     category = session.query(Category).filter_by(name = category_name).one()
     item = session.query(CategoryItem).filter_by(name = item_name, category_id = category.id).first()
-    if item != None:
+    if 'username' not in login_session:
+        return render_template('publicItemDescription.html', item = item)
+    elif item != None:
         return render_template('item_description.html', item = item)
     else:
         return "Item Does not Exist!"
 
 #Directs to add a new item page
+
 @app.route('/catalogs/new/', methods = ['GET', 'POST'])
 def newItem():
     if 'username' not in login_session:
@@ -271,11 +249,12 @@ def newItem():
         return render_template('newCategoryItem.html', categories = categories, items = items)
 
 #Directs to edit an item page
-@app.route('/catalogs/<int:item_id>/edit/', methods = ['GET', 'POST'])
-def editItem(item_id):
+
+@app.route('/catalogs/<string:item_name>/edit/', methods = ['GET', 'POST'])
+def editItem(item_name):
     if 'username' not in login_session:
         return redirect('/login/')
-    editedItem = session.query(CategoryItem).filter_by(id = item_id).first()
+    editedItem = session.query(CategoryItem).filter_by(name = item_name).first()
     category = session.query(Category).filter_by(id = editedItem.category_id).one()
     categories = session.query(Category).all()
     if login_session['user_id'] != editedItem.user_id:
@@ -289,13 +268,14 @@ def editItem(item_id):
         session.commit()
         return redirect(url_for('catalogCategory', category_name = newCategory.name))
     else:
-        return render_template('editCategoryItem.html', item = editedItem, category = category, item_id = item_id, categories = categories)
+        return render_template('editCategoryItem.html', item = editedItem, category = category, item_name = item_name, categories = categories)
 
-@app.route('/catalogs/<int:item_id>/delete/', methods = ['GET', 'POST'])
-def deleteItem(item_id):
+    
+@app.route('/catalogs/<string:item_name>/delete/', methods = ['GET', 'POST'])
+def deleteItem(item_name):
     if 'username' not in login_session:
         return redirect('/login/')
-    deletedItem = session.query(CategoryItem).filter_by(id = item_id).first()
+    deletedItem = session.query(CategoryItem).filter_by(name = item_name).first()
     category = session.query(Category).filter_by(id = deletedItem.category_id).one()
     if login_session['user_id'] != deletedItem.user_id:
         return "<script>function myFunction() {alert('You are not authorized to delete this item. Please create your own item at http://localhost:8000/catalogs/new/ in order to delete it.');}</script><body onload='myFunction()''>"
@@ -304,11 +284,12 @@ def deleteItem(item_id):
         session.commit()
         return redirect(url_for('catalogCategory', category_name = category.name))
     else:
-        return render_template('deleteCategoryItem.html', item_id = item_id, item = deletedItem, category = category)
+        return render_template('deleteCategoryItem.html', item_name = item_name, item = deletedItem, category = category)
 
 
 
 
+    
 if __name__ == '__main__':
     app.secret_key = 'catalog_secret_key'
     app.debug = True
