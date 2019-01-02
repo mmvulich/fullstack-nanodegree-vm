@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 app= Flask(__name__)
 
-from sqlalchemy import create_engine, desc
+from sqlalchemy import create_engine, desc, asc
 from sqlalchemy.orm import sessionmaker
 from catalog_database_setup import Base, Category, CategoryItem, User
 
@@ -31,8 +31,12 @@ session = DBSession()
 @app.route('/')
 @app.route('/catalogs/')
 def catalogs():
+    access_token = login_session.get('access_token')
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    print url
     categories = session.query(Category)
-    items = session.query(CategoryItem).order_by(desc(CategoryItem.id)).limit(10)
+    categories_count = session.query(Category).count()
+    items = session.query(CategoryItem).order_by(desc(CategoryItem.id)).limit(categories_count)
     if 'username' not in login_session:
         return render_template('publicCatalog.html', categories = categories, items = items)
     else:
@@ -61,7 +65,6 @@ def gconnect():
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
-        #print credentials
     except FlowExchangeError:
         response = make_response(
             json.dumps('Failed to upgrade the authorization code.'), 401)
@@ -72,7 +75,6 @@ def gconnect():
     access_token = credentials.access_token
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
            % access_token)
-    #print url
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
     # If there was an error in the access token info, abort.
@@ -170,7 +172,6 @@ def getUserID(email):
 def gdisconnect():
         # Only disconnect a connected user.
     access_token = login_session.get('access_token')
-    print access_token
     if access_token is None:
         response = make_response(
             json.dumps('Current user not connected.'), 401)
@@ -180,7 +181,6 @@ def gdisconnect():
     print url
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
-    print result['status']
 
     if result['status'] == '200':
         # Reset the user's sesson.
@@ -192,13 +192,14 @@ def gdisconnect():
 
         response = make_response(json.dumps('Successfully disconnected.'), 200)
         response.headers['Content-Type'] = 'application/json'
-        return response
+        return redirect('/')
     else:
         # For whatever reason, the given token was invalid.
         response = make_response(
             json.dumps('Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
-        return response   
+        return response
+
 
 #Directs to specific category page
 
@@ -289,6 +290,16 @@ def deleteItem(item_name):
 
 
 
+
+@app.route('/catalogs/categories/JSON')
+def categoriesJSON():
+    categories = session.query(Category).order_by(asc(Category.name))
+    return jsonify(categories=[c.serialize for c in categories])
+
+@app.route('/catalogs/items/JSON')
+def itemsJSON():
+    items = session.query(CategoryItem).order_by(asc(CategoryItem.name))
+    return jsonify(items=[i.serialize for i in items])
     
 if __name__ == '__main__':
     app.secret_key = 'catalog_secret_key'

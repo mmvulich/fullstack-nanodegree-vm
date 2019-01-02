@@ -1,23 +1,31 @@
 <html>
+    <head>
+        <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}">
+    </head>
     <body>
-        <a href="{{url_for('gdisconnect')}}">Click Here to Log out </a>
-    <h1> Categories </h1>
+        <div class='banner'>
+        <span class='connect_button'><a href="{{url_for('gdisconnect')}}"><button>Click Here to Log out </button></a></span>
+        <h1 class='Title'>Item Catalog</h1></div>
+            
+    <div class='category_header'><h2> Categories </h2>
         {% for i in categories %}
-            <p>{{i.name}}</p>
+            <p><a class= 'category' href="{{url_for('catalogCategory', category_name = i.name)}}">{{i.name}}</a></p>
         
-        {% endfor %}
-        <h2>Latest Items</h2>
+        {% endfor %}</div>
+        <div class = 'items_header'><h3>Latest Items</h3>
         <a href="{{url_for('newItem')}}">
-				<button class="btn btn-default" id="new-item">
-					<span class="glyphicon glyphicon-cutlery" aria-hidden="true"></span>Add Item
+				<button class = 'button'>
+					Add Item
 				</button>
 			</a>
         {% for i in items %}
             {% for x in categories %}
                 {% if i.category_id == x.id: %}
-                    <p>{{i.name}} ({{x.name}})</p>
+                    <p><a  class = 'items' href = "{{url_for('catalogItem', category_name = x.name, item_name = i.name)}}">{{i.name}} </a><span class="itemCategory">({{x.name}})</span></p>
                 {% endif %}
             {% endfor %}
-        {% endfor %}
+        {% endfor %}</div>
     </body>
 </html>
