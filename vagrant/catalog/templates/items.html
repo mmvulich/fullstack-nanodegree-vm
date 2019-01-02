@@ -2,12 +2,19 @@
     <head>
         <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}">
     </head>
 <body>
-    <h1>{{category.name}} Items ({{num_items}} {{item_string}})</h1>
+    <div class='banner'>
+        <h1 class = 'Title'>Catalog App</h1></div>
+    <div class='category_header'><h2> Categories </h2>
+        {% for i in categories %}
+            <p><a class= 'category' href="{{url_for('catalogCategory', category_name = i.name)}}">{{i.name}}</a></p>
+        
+        {% endfor %}</div>
+    <h2>{{category.name}} Items ({{num_items}} {{item_string}})</h2>
     {% for i in items %}
-    <p> {{i.name}} </p>
+    <p> <a  class = 'items' href = "{{url_for('catalogItem', category_name = category.name, item_name = i.name)}}">{{i.name}} </a> </p>
     
     {% endfor %}
     </body>

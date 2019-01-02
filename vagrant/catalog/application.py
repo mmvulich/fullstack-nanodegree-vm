@@ -207,6 +207,7 @@ def gdisconnect():
 
 @app.route('/catalogs/<string:category_name>/items/')
 def catalogCategory(category_name):
+    categories = session.query(Category)
     category = session.query(Category).filter_by(name = category_name).one()
     items = session.query(CategoryItem).filter_by(category_id = category.id)
     num_items = items.count()
@@ -214,7 +215,7 @@ def catalogCategory(category_name):
         item_string = 'items'
     else:
         item_string = 'item'
-    return render_template('items.html', category = category, items = items, num_items = num_items, item_string = item_string)
+    return render_template('items.html', category = category, items = items, num_items = num_items, item_string = item_string, categories = categories)
 
 #Directs to specific item description page
 

@@ -2,22 +2,24 @@
     <head>
         <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}">
     </head>
 <body>
-    <h1>Edit Item</h1>
+    <div class='banner'>
+        <h1 class = 'Title'>Catalog App</h1></div>
+    <h2 class = 'item_title'>Edit Item</h2>
     <form action = "{{url_for('editItem', item_name = item_name)}}" method = 'POST'>
-    <p>Name:</p>
+    <p class = 'options'>Name:</p>
         <input type = 'text' size='30' name = 'name' placeholder="{{item.name}}">
-    <p>Description:</p>
+    <p class = 'options'>Description:</p>
         <input type = 'text' size='30' name = 'description' placeholder="{{item.description}}">
-    <p>Category:</p>
+    <p class = 'options'>Category:</p>
         <select name = 'category'>
         {% for i in categories %}
             <option value = {{i.name}}>{{i.name}}</option>
         {% endfor %}
         </select>
-    <p><input type = 'submit'value = 'Update'></p>
+    <p><input class = 'submit', type = 'submit', value = 'Update'></p>
     </form>
     <a href="{{url_for('catalogItem', category_name = category.name, item_name = item.name)}}">Cancel</a>
     

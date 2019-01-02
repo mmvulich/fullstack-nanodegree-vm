@@ -75,3 +75,20 @@ h1 {
 .button {
     margin-bottom: 5px;
 }
+
+.item_title {
+    color: #002872;
+}
+
+.item_description {
+    color: #000000;
+}
+
+.options {
+    color: #000000;
+}
+
+.submit {
+    color: #000000;
+    margin-top: 5px;
+}

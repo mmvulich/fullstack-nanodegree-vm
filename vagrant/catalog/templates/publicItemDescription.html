@@ -2,11 +2,13 @@
     <head>
         <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles/styles.css') }}">
     </head>
 <body>
-    <h1>{{item.name}}</h1>
+    <div class='banner'>
+        <h1 class = 'Title'>Catalog App</h1></div>
+    <h2 class = 'item_title'>{{item.name}}</h2>
     
-    <p>Description: {{item.description}}</p>
+    <p class = 'item_description'>Description: {{item.description}}</p>
     </body>
 </html>
