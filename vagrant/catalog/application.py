@@ -350,4 +350,4 @@ def itemsJSON():
 if __name__ == '__main__':
     app.secret_key = 'catalog_secret_key'
     app.debug = True
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='3.92.192.125', port=80)
