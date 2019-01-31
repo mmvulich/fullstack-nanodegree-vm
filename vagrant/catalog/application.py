@@ -25,12 +25,12 @@ import psycopg2
 app = Flask(__name__)
 #auth = HTTPBasicAuth()
 
-CLIENT_ID = json.loads(open('/var/www/fullstack-nanodegree-vm/vagrant/catalog/client_secrets.json', 'r')
-                       .read())['web']['client_id']
+'''CLIENT_ID = json.loads(open('/var/www/fullstack-nanodegree-vm/vagrant/catalog/client_secrets.json', 'r')
+                       .read())['web']['client_id']'''
 
 APPLICATION_NAME = "Catalog-Project"
 
-engine = create_engine('postgresql://catalog:password@localhost/catalog')
+engine = create_engine('postgresql://catalog:password@localhost/catalog.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -76,7 +76,7 @@ def gconnect():
     # Obtaining the authorization code
     code = request.data
 
-    try:
+    '''try:
         # Need to upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
@@ -85,7 +85,7 @@ def gconnect():
         response = make_response(
             json.dumps('Failed to upgrade the authorization code.'), 401)
         response.headers['Content-Type'] = 'application/json'
-        return response
+        return response'''
 
     # Validating the access token
     access_token = credentials.access_token
@@ -108,12 +108,12 @@ def gconnect():
         return response
 
     # Verifying that the access token is valid for this app
-    if result['issued_to'] != CLIENT_ID:
+    '''if result['issued_to'] != CLIENT_ID:
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
         print ("Token's client ID does not match app's.")
         response.headers['Content-Type'] = 'application/json'
-        return response
+        return response'''
 
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
