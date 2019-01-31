@@ -20,6 +20,7 @@ import requests
 from flask_httpauth import HTTPBasicAuth
 from sqlalchemy import create_engine, desc, asc
 from sqlalchemy.orm import sessionmaker
+import psycopg2
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
