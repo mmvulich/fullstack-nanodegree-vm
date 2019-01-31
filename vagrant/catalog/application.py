@@ -29,7 +29,7 @@ CLIENT_ID = json.loads(open('client_secrets.json', 'r')
 
 APPLICATION_NAME = "Catalog-Project"
 
-engine = create_engine('postgresql://catalog:password@localhost:5432/catalog.db')
+engine = create_engine('postgresql://catalog:password@localhost/catalog.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
