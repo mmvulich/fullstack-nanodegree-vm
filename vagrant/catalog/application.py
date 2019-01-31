@@ -25,7 +25,7 @@ import psycopg2
 app = Flask(__name__)
 #auth = HTTPBasicAuth()
 
-CLIENT_ID = json.loads(open('client_secrets.json', 'r')
+CLIENT_ID = json.loads(open('/var/www/fullstack-nanodegree-vm/vagrant/catalog/client_secrets.json', 'r')
                        .read())['web']['client_id']
 
 APPLICATION_NAME = "Catalog-Project"
