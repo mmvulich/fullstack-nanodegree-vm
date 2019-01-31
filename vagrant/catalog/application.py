@@ -155,7 +155,7 @@ def gconnect():
         border-radius: 150px;-webkit-border-radius:\
         150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
-    print "done!"
+    print ("done!")
     return output
 
 # User Helper Functions
@@ -195,7 +195,7 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
-    print url
+    print (url)
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
 
