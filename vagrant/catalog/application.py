@@ -17,13 +17,13 @@ import httplib2
 import json
 from flask import make_response
 import requests
-from flask_httpauth import HTTPBasicAuth
+#from flask_httpauth import HTTPBasicAuth
 from sqlalchemy import create_engine, desc, asc
 from sqlalchemy.orm import sessionmaker
 import psycopg2
 
 app = Flask(__name__)
-auth = HTTPBasicAuth()
+#auth = HTTPBasicAuth()
 
 CLIENT_ID = json.loads(open('client_secrets.json', 'r')
                        .read())['web']['client_id']
