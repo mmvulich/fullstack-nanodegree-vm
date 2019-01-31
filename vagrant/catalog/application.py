@@ -30,7 +30,8 @@ app = Flask(__name__)
 
 APPLICATION_NAME = "Catalog-Project"
 
-engine = create_engine('postgresql://catalog:password@localhost/catalog.db')
+engine = create_engine('postgresql://catalog:password@localhost/catalog')
+engine = create_engine('postgresql://catalog:password@localhost/catalog')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
