@@ -11,8 +11,8 @@ from catalog_database_setup import Base, Category, CategoryItem, User
 from flask import session as login_session
 import random
 import string
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.client import FlowExchangeError
+#from oauth2client.client import flow_from_clientsecrets
+#from oauth2client.client import FlowExchangeError
 import httplib2
 import json
 from flask import make_response
@@ -31,7 +31,6 @@ app = Flask(__name__)
 APPLICATION_NAME = "Catalog-Project"
 
 engine = create_engine('postgresql://catalog:password@localhost/catalog')
-engine = create_engine('postgresql://catalog:password@localhost/catalog')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -43,23 +42,24 @@ session = DBSession()
 @app.route('/')
 @app.route('/catalogs/')
 def catalogs():
-    access_token = login_session.get('access_token')
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    '''access_token = login_session.get('access_token')
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token'''
     categories = session.query(Category)
     categories_count = session.query(Category).count()
     items = session.query(CategoryItem).order_by(desc(CategoryItem.id))\
         .limit(categories_count)
-    if 'username' not in login_session:
+    return render_template('catalog.html', categories=categories, items=items)
+    '''if 'username' not in login_session:
         return render_template('publicCatalog.html',
                                categories=categories, items=items)
     else:
         return render_template('catalog.html',
-                               categories=categories, items=items)
+                               categories=categories, items=items)'''
 
 # Directs to login page using OAuth2.0
 
 
-@app.route('/login/')
+'''@app.route('/login/')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
@@ -157,7 +157,7 @@ def gconnect():
         150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     print ("done!")
-    return output
+    return output'''
 
 # User Helper Functions
 
@@ -187,7 +187,7 @@ def getUserID(email):
 
 
 @app.route('/gdisconnect')
-def gdisconnect():
+'''def gdisconnect():
         # Only disconnect a connected user.
     access_token = login_session.get('access_token')
     if access_token is None:
@@ -216,7 +216,7 @@ def gdisconnect():
         response = make_response(
             json.dumps('Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
-        return response
+        return response'''
 
 
 # Directs to specific category page
@@ -245,12 +245,13 @@ def catalogItem(category_name, item_name):
     item = session.query(CategoryItem)\
         .filter_by(name=item_name, category_id=category.id).first()
     # If user is not logged in they are directed to the public page
-    if 'username' not in login_session:
+    return render_template('item_description.html, item=item')
+    '''if 'username' not in login_session:
         return render_template('publicItemDescription.html', item=item)
     elif item is not None:
         return render_template('item_description.html', item=item)
     else:
-        return "Item Does not Exist!"
+        return "Item Does not Exist!"'''
 
 # Directs to add a new item page
 
@@ -258,8 +259,8 @@ def catalogItem(category_name, item_name):
 @app.route('/catalogs/new/', methods=['GET', 'POST'])
 def newItem():
     # Directs to login page if not logged in
-    if 'username' not in login_session:
-        return redirect('/login/')
+    '''if 'username' not in login_session:
+        return redirect('/login/')'''
     categories = session.query(Category).all()
     items = session.query(CategoryItem).all()
     if request.method == 'POST':
@@ -282,19 +283,19 @@ def newItem():
 @app.route('/catalogs/<string:item_name>/edit/', methods=['GET', 'POST'])
 def editItem(item_name):
     # Directs to login page if not logged in
-    if 'username' not in login_session:
-        return redirect('/login/')
+    '''if 'username' not in login_session:
+        return redirect('/login/')'''
     editedItem = session.query(CategoryItem)\
         .filter_by(name=item_name).first()
     category = session.query(Category)\
         .filter_by(id=editedItem.category_id).one()
     categories = session.query(Category).all()
     # Determines if user has access to edit item and sends error if not
-    if login_session['user_id'] != editedItem.user_id:
+    '''if login_session['user_id'] != editedItem.user_id:
         return "<script>function myFunction()\
             {alert('You are not authorized to edit this item.\
             Please create your own item at http://localhost:8000/catalogs/new\
-            in order to edit');}</script><body onload='myFunction()''>"
+            in order to edit');}</script><body onload='myFunction()''>"'''
     if request.method == 'POST':
         newCategory = session.query(Category)\
             .filter_by(name=request.form['category']).one()
@@ -314,18 +315,18 @@ def editItem(item_name):
 @app.route('/catalogs/<string:item_name>/delete/', methods=['GET', 'POST'])
 def deleteItem(item_name):
     # Directs to login page if not logged in
-    if 'username' not in login_session:
-        return redirect('/login/')
+    '''if 'username' not in login_session:
+        return redirect('/login/')'''
     deletedItem = session.query(CategoryItem)\
         .filter_by(name=item_name).first()
     category = session.query(Category)\
         .filter_by(id=deletedItem.category_id).one()
     # Determines if user has access to delete item and sends error if not
-    if login_session['user_id'] != deletedItem.user_id:
+    '''if login_session['user_id'] != deletedItem.user_id:
         return "<script>function myFunction()\
         {alert('You are not authorized to delete this item.\
         Please create your own item at http://localhost:8000/catalogs/new/\
-        in order to delete it.');}</script><body onload='myFunction()''>"
+        in order to delete it.');}</script><body onload='myFunction()''>"'''
     if request.method == 'POST':
         session.delete(deletedItem)
         session.commit()
