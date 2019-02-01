@@ -244,7 +244,7 @@ def catalogItem(category_name, item_name):
     category = session.query(Category).filter_by(name=category_name).one()
     item = session.query(CategoryItem)\
         .filter_by(name=item_name, category_id=category.id).first()
-    render_template('item_description.html', item=item)
+    return render_template('item_description.html', item=item)
     # If user is not logged in they are directed to the public page
     '''if 'username' not in login_session:
         return render_template('publicItemDescription.html', item=item)
