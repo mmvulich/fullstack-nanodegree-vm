@@ -48,7 +48,7 @@ def catalogs():
     categories_count = session.query(Category).count()
     items = session.query(CategoryItem).order_by(desc(CategoryItem.id))\
         .limit(categories_count)
-    return render_template('catalog.html', categories=cateogires, items=items)
+    return render_template('publicCatalog.html', categories=cateogires, items=items)
     '''if 'username' not in login_session:
         return render_template('publicCatalog.html',
                                categories=categories, items=items)
