@@ -42,18 +42,19 @@ session = DBSession()
 @app.route('/')
 @app.route('/catalogs/')
 def catalogs():
-    access_token = login_session.get('access_token')
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    #access_token = login_session.get('access_token')
+    #url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
     categories = session.query(Category)
     categories_count = session.query(Category).count()
     items = session.query(CategoryItem).order_by(desc(CategoryItem.id))\
         .limit(categories_count)
-    if 'username' not in login_session:
+    return render_template('catalog.html', categories=cateogires, items=items)
+    '''if 'username' not in login_session:
         return render_template('publicCatalog.html',
                                categories=categories, items=items)
     else:
         return render_template('catalog.html',
-                               categories=categories, items=items)
+                               categories=categories, items=items)'''
 
 # Directs to login page using OAuth2.0
 
