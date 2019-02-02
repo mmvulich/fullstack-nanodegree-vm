@@ -269,7 +269,7 @@ def newItem():
         newItem = CategoryItem(name=request.form['name'],
                                description=request.form['description'],
                                category_id=category.id,
-                               user_id=login_session['user_id'])
+                               user_id=1)
         session.add(newItem)
         session.commit()
         return redirect(url_for('catalogs'))
